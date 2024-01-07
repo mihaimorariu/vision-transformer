@@ -3,9 +3,12 @@ import logging
 
 import numpy as np
 import torch
+from pytorch_lightning.trainer import Trainer
 from torch.utils.data import DataLoader
 from torchvision.datasets.mnist import MNIST
 from torchvision.transforms import ToTensor
+
+from vit.network import VisionTransformer
 
 
 def main(args):
@@ -46,6 +49,12 @@ def main(args):
 
     if is_cuda:
         logging.info(f"CUDA detected: {torch.cuda.get_device_name(device)}")
+
+    model = VisionTransformer()
+    model.train()
+
+    trainer = Trainer()
+    trainer.fit(model, train_loader, test_loader)
 
 
 if __name__ == "__main__":

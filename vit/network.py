@@ -1,10 +1,14 @@
-from torch import Tensor
-from torch.nn import Module
+from typing import Any
+
+from pytorch_lightning import LightningModule
 
 
-class VisionTransformer(Module):
+class VisionTransformer(LightningModule):
     def __init__(self):
         super().__init__()
 
-    def forward(self, images: Tensor) -> Tensor:
-        return images
+    def training_step(self, *args: Any, **kwargs: Any) -> None:
+        pass
+
+    def configure_optimizers(self):
+        pass
