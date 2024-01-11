@@ -3,18 +3,23 @@ from typing import Any
 import torch
 from pytorch_lightning import LightningModule
 from torch import Tensor
-from torch.nn import Linear, Parameter
+from torch.nn import Linear, ModuleList, Parameter, Sequential, Softmax
 from torch.optim import Adam
+
+from .block import VisionTransformerBlock
 
 
 class VisionTransformer(LightningModule):
     def __init__(
         self,
         n_patches: int = 7,
+        n_encoder_blocks: int = 2,
+        n_mhsa_heads: int = 2,
         n_channels: int = 1,
         n_hidden_dim: int = 8,
         image_height: int = 28,
         image_width: int = 28,
+        n_classes: int = 10,
     ) -> None:
         super().__init__()
 
@@ -38,15 +43,33 @@ class VisionTransformer(LightningModule):
         self._pos_embed = Parameter(self._get_positional_embedding())
         self._pos_embed.requires_grad = False
 
+        self._encoder_blocks = ModuleList(
+            [
+                VisionTransformerBlock(n_hidden_dim, n_mhsa_heads)
+                for _ in range(n_encoder_blocks)
+            ]
+        )
+
+        self._mlp = Sequential(
+            Linear(n_hidden_dim, n_classes),
+            Softmax(dim=-1),
+        )
+
     def forward(self, x: Tensor) -> Tensor:  # type: ignore
         batch_size = x.shape[0]
 
         h = self._patchify(x)
         h = self._linear(h)
-        h = torch.cat([h, self._cls_embed.repeat(batch_size, 1, 1)], dim=1)
+        h = torch.cat((self._cls_embed.repeat(batch_size, 1, 1), h), dim=1)
         h = h + self._pos_embed.repeat(batch_size, 1, 1)
 
-        return h
+        for block in self._encoder_blocks:
+            h = block(h)
+
+        cls_token = h[..., 0, :]
+        y = self._mlp(cls_token)
+
+        return y
 
     def _get_positional_embedding(self):
         n_tokens = self._n_patches**2 + 1
@@ -79,9 +102,6 @@ class VisionTransformer(LightningModule):
         patches = patches.reshape(batch_size, self._n_patches**2, -1)
 
         return patches
-
-    def training_step(self, *args: Any, **kwargs: Any) -> None:
-        pass
 
     def configure_optimizers(self):
         optimizer = Adam(self.parameters(), lr=1e-3)
