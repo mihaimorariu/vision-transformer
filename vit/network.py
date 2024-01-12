@@ -1,3 +1,5 @@
+"""Implements the main vision transformer network."""
+
 from typing import Tuple
 
 import torch

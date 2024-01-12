@@ -1,3 +1,5 @@
+"""Implements the vision transformer encoder block."""
+
 from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch.nn import GELU, LayerNorm, Linear, Sequential

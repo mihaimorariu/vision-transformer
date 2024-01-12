@@ -1,3 +1,5 @@
+"""Implements the multi-headed self attention module."""
+
 import torch
 from pytorch_lightning import LightningModule
 from torch import Tensor
