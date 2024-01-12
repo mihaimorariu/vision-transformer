@@ -1,9 +1,10 @@
-from typing import Any
+from typing import Tuple
 
 import torch
 from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch.nn import Linear, ModuleList, Parameter, Sequential, Softmax
+from torch.nn.functional import cross_entropy
 from torch.optim import Adam
 
 from .block import VisionTransformerBlock
@@ -70,6 +71,16 @@ class VisionTransformer(LightningModule):
         y = self._mlp(cls_token)
 
         return y
+
+    def training_step(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self,
+        batch: Tuple[Tensor, Tensor],
+    ) -> Tensor:
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = cross_entropy(y_hat, y)
+        self.log("Train loss: ", loss)
+        return loss
 
     def _get_positional_embedding(self):
         n_tokens = self._n_patches**2 + 1
