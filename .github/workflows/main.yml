@@ -1,4 +1,4 @@
-name: Vision Transformer
+name: build
 
 on:
   push:
