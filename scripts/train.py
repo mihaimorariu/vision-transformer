@@ -53,7 +53,11 @@ def main(args):
     model = VisionTransformer()
     model.train()
 
-    trainer = Trainer()
+    trainer = Trainer(
+        enable_checkpointing=False,
+        max_epochs=5,
+        enable_progress_bar=False,
+    )
     trainer.fit(model, train_loader, test_loader)
 
 
