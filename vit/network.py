@@ -115,5 +115,5 @@ class VisionTransformer(LightningModule):
         return patches
 
     def configure_optimizers(self):
-        optimizer = Adam(self.parameters(), lr=1e-3)
+        optimizer = Adam(self.parameters(), lr=0.005)
         return optimizer
