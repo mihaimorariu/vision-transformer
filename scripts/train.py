@@ -55,7 +55,7 @@ def main(args):
 
     trainer = Trainer(
         enable_checkpointing=False,
-        max_epochs=5,
+        max_epochs=args.max_epochs,
         enable_progress_bar=False,
     )
     trainer.fit(model, train_loader, test_loader)
@@ -65,6 +65,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch-size", "-b", type=int, default=128)
     parser.add_argument("--seed", "-s", type=int, default=1234)
+    parser.add_argument("--max-epochs", "-e", type=int, default=5)
 
     args = parser.parse_args()
     main(args)
