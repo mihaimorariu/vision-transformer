@@ -56,7 +56,7 @@ def main(args):
     trainer = Trainer(
         enable_checkpointing=False,
         max_epochs=args.max_epochs,
-        enable_progress_bar=False,
+        enable_progress_bar=True,
     )
     trainer.fit(model, train_loader, test_loader)
 

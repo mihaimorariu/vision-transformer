@@ -94,7 +94,13 @@ class VisionTransformer(LightningModule):
         x, y = batch
         y_hat = self.forward(x)
         loss = cross_entropy(y_hat, y)
-        self.log("Train loss: ", loss)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+        )
         return loss
 
     def configure_optimizers(self):
