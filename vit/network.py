@@ -2,6 +2,8 @@
 
 from typing import Tuple
 
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 from pytorch_lightning import LightningModule
 from torch import Tensor
@@ -92,28 +94,47 @@ class VisionTransformer(LightningModule):
             torch.arange(self._n_hidden_dim),
             indexing="ij",
         )
-        embedding = torch.cos(
-            y / torch.pow(10000, (x - 1) / self._n_hidden_dim))
+        embedding = torch.cos(y / torch.pow(10000, (x - 1) / self._n_hidden_dim))
         mask = x % 2 == 0
-        embedding[mask] = torch.sin(
-            y / torch.pow(10000, x / self._n_hidden_dim))[mask]
+        embedding[mask] = torch.sin(y / torch.pow(10000, x / self._n_hidden_dim))[mask]
         return embedding
 
-    def _patchify(self, x: Tensor) -> Tensor:
-        assert len(x.shape) == 4
-        batch_size, n_channels = x.shape[:2]
+    def _patchify(
+        self,
+        batch: Tensor,
+        visualize: bool = False,
+    ) -> Tensor:
+        assert len(batch.shape) == 4
+        batch_size, n_channels, image_height, image_width = batch.shape
 
-        patches = x.reshape(
+        patches = batch.reshape(
             batch_size,
             n_channels,
+            self._n_patches,
             self._patch_height,
             self._n_patches,
             self._patch_width,
-            self._n_patches,
         )
-        patches = torch.permute(patches, (0, 3, 5, 2, 4, 1))
-        patches = patches.reshape(batch_size, self._n_patches**2, -1)
+        patches = torch.permute(patches, (0, 2, 4, 3, 5, 1))
 
+        if visualize:
+            image_np = batch[0].cpu().numpy()
+            image_np = np.transpose(image_np, (1, 2, 0))
+
+            plt.imshow(image_np)
+            plt.title(f"Image ({image_width} x {image_height})")
+
+            patches_np = patches[0].cpu().numpy()
+            fig, axs = plt.subplots(self._n_patches, self._n_patches)
+            fig.suptitle(f"Patches ({self._patch_width} x {self._patch_height})")
+
+            for i in range(self._n_patches):
+                for j in range(self._n_patches):
+                    axs[i, j].imshow(patches_np[i][j])
+
+            plt.show()
+
+        patches = patches.reshape(batch_size, self._n_patches**2, -1)
         return patches
 
     def configure_optimizers(self):
